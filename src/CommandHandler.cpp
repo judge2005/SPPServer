@@ -48,7 +48,7 @@ void CommandHandler::loop() {
                     } else {
                         x_buffer[x_position] = 0;
                     }
-                    if (mode == COMMAND) {
+                    if (strncmp((const char*)x_buffer, "AT+", 3) == 0) {
                         parseCommand();
                     } else {
                         sendCallback(x_buffer, x_position-1);
