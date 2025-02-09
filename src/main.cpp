@@ -55,6 +55,15 @@ typedef enum {
 	DISCONNECTING
 } SPPConnectionState;
 
+std::unordered_map<SPPConnectionState, std::string> state2string = {
+	{NOT_INITIALIZED, "NOT_INITIALIZED"},
+    {NOT_CONNECTED, "NOT_CONNECTED"},
+	{SEARCHING, "SEARCHING"},
+	{CONNECTED, "CONNECTED"},
+	{SEARCHING, "SEARCHING"},
+	{DISCONNECTING, "DISCONNECTING"}
+};
+
 #define RXD 7
 #define TXD 8
 #define COMMAND_PIN 15
@@ -279,6 +288,12 @@ bool setName(std::string cmd, std::string name) {
 	return false;
 }
 
+bool reportState(std::string cmd, std::string name) {
+	Serial1.println(state2string[connectionStatus].c_str());
+
+	return true;
+}
+
 void initFromEEPROM() {
 //	config.setDebugPrint(debugPrint);
 	config.init();
@@ -309,6 +324,7 @@ void setup() {
 	commandHandler.setCommandCallback("NAME", setName);
 	commandHandler.setCommandCallback("CONNECT", connect);
 	commandHandler.setCommandCallback("DISCONNECT", disconnect);
+	commandHandler.setCommandCallback("STATE", reportState);
 	commandHandler.setSendCallback(sendData);
 	
 	pinMode(COMMAND_PIN, INPUT_PULLUP);
