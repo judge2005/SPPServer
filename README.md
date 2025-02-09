@@ -3,7 +3,7 @@ This is an implementation of a Bluetooth SPP server - kind of like an HC-05 in s
 * HC-05 doesn't seem to be designed for embedded systems where the controlling processor is in charge - saving state, telling the server when to connect and disconnect, what to connect to etc. To send commands to it you have to put in to command mode using physical buttons!
 * The inquiry mode, where it searches for devices to connect to, doesn't find the devices I want to connect to.
 
-So I wrote this. It is almost general purpose, though not quite.You will need an ESP32 module that implements classic bluetooth.
+So I wrote this. It is almost general purpose, though not quite. You will need an ESP32 module that implements classic bluetooth.
 
 I implemented several AT commands. Note that these commands have to be sent terminated with \r\n (carriage return, newline):
 
