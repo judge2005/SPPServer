@@ -25,3 +25,5 @@ The state can be any of the following:
 |5|	DISCONNECTING | The server is in the process of disconnecting from the client|
 
 When the server is connected to the client, any strings sent to it that dont start with _AT+_ will be sent on to the client.
+
+It should be easy to add more AT commands - they are just impemented as callbacks in the _CommandHandler_ class.
