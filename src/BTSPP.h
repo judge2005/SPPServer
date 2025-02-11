@@ -1,5 +1,6 @@
 #ifndef BT_BTSPP_H
 #define BT_BTSPP_H
+#include "freertos/FreeRTOS.h"
 #include <esp_bt_defs.h>
 #include <esp_gap_bt_api.h>
 #include <esp_spp_api.h>
@@ -9,7 +10,7 @@
 
 class BTSPP {
 public:
-    BTSPP(const std::string& name);
+    BTSPP(const std::string& name, int recvBufSize);
 
     bool init();
     bool inited() { return initDone; }
@@ -18,6 +19,7 @@ public:
     bool connectionDone() { return connectDone; }
     bool write(const std::string& msg);
     bool write(uint8_t *pBuf, int len);
+    int  read(uint8_t *pBuf, int maxBytes);
 
     bool isError() { return err != ESP_OK; }
     const std::string& getErrMessage() { return errMsg; }
@@ -40,6 +42,8 @@ private:
     char writeBuf[MAX_STRING_LENGTH];
     char *bufPtr;
     bool writeDone = true;
+
+    QueueHandle_t recvQueue;
 
     esp_err_t err;
     std::string errMsg;

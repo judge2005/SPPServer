@@ -23,11 +23,12 @@ std::unordered_map<BTSPPServer::State, std::string> BTSPPServer::state2string = 
 };
 
 #define MAX_NAME_LEN 63
+#define RECV_BUF_SIZE 50
 
 BTSPPServer::BTSPPServer(const std::string& name, HardwareSerial &_serial) :
     serial(_serial),
     commandHandler(_serial),
-    btSPP(name),
+    btSPP(name, RECV_BUF_SIZE),
     serverName(name),
     clientName("A client"),
     clientAddressCallback([](long address) { ESP_LOGI(SPP_SERVER_TAG, "client address=0x%6.6x", address); }),
@@ -107,6 +108,11 @@ void BTSPPServer::setClientName(const char *name) {
 }
 
 void BTSPPServer::loop() {
+    static unsigned long lastReadMs = 0;
+    static uint8_t recvBuf[RECV_BUF_SIZE];
+
+    unsigned long now = millis();
+
     if (digitalRead(commandPin) == HIGH) {
         commandHandler.setMode(CommandHandler::COMMAND);
     } else {
@@ -114,6 +120,14 @@ void BTSPPServer::loop() {
     }
 
     commandHandler.loop();
+
+    if (millis() - lastReadMs > 1000) {
+        lastReadMs = now;
+        int len = 0;
+        if ((len = btSPP.read(recvBuf, sizeof(recvBuf))) > 0) {
+            ESP_LOGI(SPP_SERVER_TAG, "Received message: %.*s", len, recvBuf);
+        }
+    }
 
     if (connectionStatus == CONNECTED) {
         // Toggle pin. Sending a message is a bad idea because of asynchronicity

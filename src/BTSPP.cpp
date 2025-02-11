@@ -10,7 +10,7 @@
 
 BTSPP *BTSPP::self = 0;
 
-BTSPP::BTSPP(const std::string& name) {
+BTSPP::BTSPP(const std::string& name, int recvBufSize) : recvQueue(xQueueCreate(recvBufSize, sizeof(uint8_t))) {
     this->name = name;
 }
 
@@ -141,27 +141,42 @@ bool BTSPP::write(const std::string& msg) {
 }
 
 bool BTSPP::write(uint8_t *pBuf, int len) {
-    if (writeDone) {
-        if (len < MAX_STRING_LENGTH) {
-            ESP_LOGD(BT_SPP_TAG, "Writing %.*s to %d", len, pBuf, peerHandle);
-            memcpy(writeBuf, pBuf, len);
-            writeDone = false;
-            bufPtr = writeBuf;
-            if ((err = esp_spp_write(peerHandle, len, pBuf)) != ESP_OK) {
-                errMsg = esp_err_to_name(err);
+    if (len > 0) {
+        if (writeDone) {
+            if (len < MAX_STRING_LENGTH) {
+                ESP_LOGD(BT_SPP_TAG, "Writing %.*s to %d", len, pBuf, peerHandle);
+                memcpy(writeBuf, pBuf, len);
+                bufPtr = writeBuf;
+                if ((err = esp_spp_write(peerHandle, len, pBuf)) != ESP_OK) {
+                    errMsg = esp_err_to_name(err);
+                } else {
+                    writeDone = false;
+                }
+            } else {
+                err = -1;
+                errMsg = "data is too long";
             }
+
+            return true;
         } else {
             err = -1;
-            errMsg = "data is too long";
+            errMsg = "Still writing previous data";
+
+            return false;
         }
-
-        return true;
     } else {
-        err = -1;
-        errMsg = "Still writing previous data";
-
-        return false;
+        return true;
     }
+}
+
+int BTSPP::read(uint8_t *pBuf, int maxBytes) {
+    int index = 0;
+
+    while (index < maxBytes && xQueueReceive(recvQueue, &pBuf[index], 50) == pdTRUE) {
+        index++;
+    }
+
+    return index;
 }
 
 void BTSPP::btSPPCallback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
@@ -220,6 +235,14 @@ void BTSPP::btSPPCallback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
         break;
     case ESP_SPP_DATA_IND_EVT:
         ESP_LOGD(BT_SPP_TAG, "ESP_SPP_DATA_IND_EVT");
+        if (param->data_ind.status == ESP_SPP_SUCCESS) {
+            for (int i = 0; i < param->data_ind.len; i++) {
+                if (xQueueSend(recvQueue, &param->data_ind.data[i], 0) != pdTRUE) {
+                    ESP_LOGE(BT_SPP_TAG, "Receive buffer is full");
+                }
+            }
+        }
+        
         break;
     case ESP_SPP_WRITE_EVT:
         if (param->write.status == ESP_SPP_SUCCESS) {
