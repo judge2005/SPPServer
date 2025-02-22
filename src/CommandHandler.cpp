@@ -43,15 +43,18 @@ void CommandHandler::loop() {
             delay(1);
             if (x_position < sizeof(x_buffer)) {
                 if (c == '\n') {
-                    if (x_position > 1 && x_buffer[x_position-1] == '\r') {
+                    if (x_position >= 1 && x_buffer[x_position-1] == '\r') {
                         x_buffer[x_position-1] = 0;
                     } else {
                         x_buffer[x_position] = 0;
                     }
-                    if (strncmp((const char*)x_buffer, "AT+", 3) == 0) {
-                        parseCommand();
-                    } else {
-                        sendCallback(x_buffer, x_position-1);
+                    // Ignore empty lines
+                    if (x_position > 1) {
+                        if (strncmp((const char*)x_buffer, "AT+", 3) == 0) {
+                            parseCommand();
+                        } else {
+                            sendCallback(x_buffer, x_position-1);
+                        }
                     }
                     x_position = 0;
                 } else {
@@ -99,6 +102,8 @@ void CommandHandler::parseCommand()
     } else {
         serial.println("OK");
     }
+
+    serial.flush();
 
     return;
 }

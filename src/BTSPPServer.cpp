@@ -125,6 +125,8 @@ void BTSPPServer::loop() {
         lastReadMs = now;
         int len = 0;
         if ((len = btSPP.read(recvBuf, sizeof(recvBuf))) > 0) {
+            serial.printf("%.*s\r\n", len, recvBuf);
+            serial.flush();
             ESP_LOGI(SPP_SERVER_TAG, "Received message: %.*s", len, recvBuf);
         }
     }
@@ -250,6 +252,7 @@ bool BTSPPServer::reportState(std::string cmd, std::string name) {
     // ESP_LOGI(SPP_SERVER_TAG, "Sending state %d", connectionStatus);
 
 	serial.println(connectionStatus);
+    serial.flush();
 
 	return true;
 }
