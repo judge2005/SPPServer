@@ -44,9 +44,9 @@ void ConfigItem<T>::debug(Print *debugPrint) const {
 }
 template void ConfigItem<uint64_t>::debug(Print *debugPrint) const;
 
-#define RXD 7
-#define TXD 8
-#define COMMAND_PIN 15
+#define RXD 17
+#define TXD 16
+#define COMMAND_PIN 18
 #define CONNECTED_PIN 13
 
 #define MAX_NAME_LEN 63
