@@ -13,6 +13,7 @@ I implemented several AT commands. Note that these commands have to be sent term
 | AT+CONNECT | Try to connect to the client. With no parameter it will used the one set with AT+RNAME, otherwise it will use the name provided as an argument. If the server doesn't have an address stored for this client name, it will search for it until it finds it. |OK|AT+CONNECT=Some Other Client|
 | AT+DISCONNECT | Disconnect from whatever client it might be connected to |OK|AT+DISCONNECT|
 | AT+STATE | Return the current state |\<state\>\r\nOK|AT+STATE|
+| AT+SENDRX= | If argument == 1, send anything received from the SPP client back to our client. If argument == 0, just discard anything received from the SPP client |OK|AT+SENDRX=0|
 
 The state can be any of the following:
 |Value|Meaning|Explanation|

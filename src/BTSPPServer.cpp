@@ -125,8 +125,10 @@ void BTSPPServer::loop() {
         lastReadMs = now;
         int len = 0;
         if ((len = btSPP.read(recvBuf, sizeof(recvBuf))) > 0) {
-            serial.printf("%.*s\r\n", len, recvBuf);
-            serial.flush();
+            if (sendRx) {
+                serial.printf("%.*s\r\n", len, recvBuf);
+                serial.flush();
+            }
             ESP_LOGI(SPP_SERVER_TAG, "Received message: %.*s", len, recvBuf);
         }
     }
@@ -214,6 +216,18 @@ bool BTSPPServer::setRname(std::string cmd, std::string name) {
 	return false;
 }
 
+bool BTSPPServer::setSendRx(std::string cmd, std::string arg) {
+	ESP_LOGI(SPP_SERVER_TAG, "setSendRx %s", arg);
+
+	if (arg.size() == 1) {
+        sendRx = arg != "0";
+
+		return true;
+	}
+
+	return false;
+}
+
 bool BTSPPServer::connect(std::string cmd, std::string name) {
 	if (name.size() > 0) {
 		setRname(cmd, name);
@@ -268,6 +282,7 @@ void BTSPPServer::start(unsigned long baud, uint32_t config, int8_t rxPin, int8_
     }
     ESP_ERROR_CHECK(err);
 
+	commandHandler.setCommandCallback("SENDRX", [this](std::string cmd, std::string arg) { return setSendRx(cmd, arg);});
 	commandHandler.setCommandCallback("RNAME", [this](std::string cmd, std::string name) { return setRname(cmd, name);});
 	commandHandler.setCommandCallback("NAME", [this](std::string cmd, std::string name) { return setName(cmd, name);});
 	commandHandler.setCommandCallback("CONNECT", [this](std::string cmd, std::string name) { return connect(cmd, name);});

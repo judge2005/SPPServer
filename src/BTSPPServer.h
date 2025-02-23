@@ -42,6 +42,7 @@ private:
     State connectionStatus = NOT_INITIALIZED;
     HardwareSerial &serial;
     bool canConnect = false;
+    bool sendRx = false;
     unsigned long clientAddress = 0;
     std::string serverName;
     std::string clientName;
@@ -51,6 +52,7 @@ private:
     void initSPP();
     void initiateConnection();
 
+    bool setSendRx(std::string cmd, std::string name);
     bool setRname(std::string cmd, std::string name);
     bool setName(std::string cmd, std::string name);
     bool connect(std::string cmd, std::string name);
